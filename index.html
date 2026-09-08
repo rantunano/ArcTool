@@ -1,0 +1,66 @@
+<!--
+ARC Mobile
+Copyright © 2026 rantunano. All rights reserved.
+Proprietary software. This source code, interface, design, logic, documentation and associated materials are the intellectual property of rantunano.
+No permission is granted to copy, modify, distribute, sublicense, publish, reverse engineer, or create derivative works without prior written authorization from the owner.
+-->
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="rights" content="Copyright © 2026 rantunano. All rights reserved. Proprietary software.">
+<meta name="robots" content="noindex,nofollow">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<title>ARC Mobile · iPhone</title>
+<style>
+:root{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",sans-serif;color:#111827;background:#f3f4f6;line-height:1.45}*{box-sizing:border-box}body{margin:0;min-height:100vh;padding-bottom:env(safe-area-inset-bottom)}header,main,footer{max-width:760px;margin:auto}header{padding:24px 18px 10px;display:flex;justify-content:space-between;gap:12px;align-items:flex-start}h1{font-size:32px;margin:2px 0 0;letter-spacing:-.03em}h2{font-size:20px;margin:0 0 8px}p{margin:6px 0 12px;color:#4b5563}.eyebrow{font-size:11px;font-weight:800;letter-spacing:.1em;color:#6b7280}.pill{background:#e5e7eb;border-radius:999px;padding:7px 10px;font-size:12px;font-weight:700}.card{background:#fff;margin:10px 12px;padding:18px;border-radius:18px;box-shadow:0 8px 24px rgba(0,0,0,.06)}label{display:block;font-size:13px;font-weight:700;margin:12px 0 6px}input[type=file]{display:none}input[type=url],input[type=number]{width:100%;border:1px solid #d1d5db;border-radius:12px;padding:12px;font-size:16px;background:#fff}.upload{display:block;border:1.5px dashed #9ca3af;border-radius:14px;padding:18px;text-align:center}.upload span{display:block;font-weight:500;color:#6b7280;font-size:12px;margin-top:3px}button{width:100%;border:0;border-radius:12px;padding:14px;margin-top:12px;background:#111827;color:#fff;font-size:16px;font-weight:800;-webkit-appearance:none}button:disabled{opacity:.45}.secondary{background:#eef2ff;color:#312e81}.preview{margin-top:14px;border-radius:14px;overflow:hidden;background:#111827}.preview img{display:block;max-width:100%;max-height:520px;margin:auto}.hidden{display:none!important}.scoreRow{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #e5e7eb;padding-bottom:14px}.score{font-size:44px;font-weight:900}.scoreLabel{text-align:right;font-weight:800}.finding{border:1px solid #e5e7eb;border-radius:14px;padding:14px;margin-top:12px}.findingHead{display:flex;gap:10px;justify-content:space-between}.finding h3{font-size:15px;margin:0}.finding p{font-size:13px;margin:6px 0}.sev{font-size:10px;font-weight:900;letter-spacing:.08em;border-radius:999px;padding:5px 8px;background:#f3f4f6;white-space:nowrap}.colorGrid,.inlineFields{display:grid;grid-template-columns:1fr 1fr;gap:12px}.colorGrid input{display:block;width:100%;height:46px;border:0;background:none}.check{display:flex;gap:8px;align-items:center;height:46px}.contrastPreview{padding:22px;border-radius:14px;margin-top:14px;text-align:center}.contrastResult{font-weight:800;margin-top:12px}.banner{border-radius:14px;padding:12px;font-size:13px;margin:10px 12px;background:#fff7ed;color:#9a3412;border:1px solid #fed7aa}.okbanner{background:#ecfdf5;color:#065f46;border-color:#a7f3d0}.note p{font-size:13px}footer{text-align:center;padding:18px;color:#9ca3af;font-size:12px}
+</style>
+</head>
+<body>
+<header><div><span class="eyebrow">ACCESSIBILITY AUDITOR · IPHONE</span><h1>ARC Mobile</h1><p>Auditoría rápida de capturas y contraste WCAG.</p></div><span id="status" class="pill">Listo</span></header>
+<div id="modeBanner" class="banner hidden"></div>
+<main>
+<section class="card"><h2>Analiza una pantalla</h2><p>La captura se procesa localmente.</p>
+<label class="upload" for="imageInput"><strong>Seleccionar screenshot</strong><span>Fotos o Archivos · PNG/JPG/WEBP</span></label><input id="imageInput" type="file" accept="image/*">
+<label for="sourceUrl">URL de referencia <small>(opcional)</small></label><input id="sourceUrl" type="url" inputmode="url" placeholder="https://ejemplo.com">
+<button id="analyzeBtn" disabled>Analizar captura</button><div id="previewWrap" class="preview hidden"><img id="preview" alt="Vista previa"></div></section>
+<section id="resultsCard" class="card hidden"><div class="scoreRow"><div><span class="eyebrow">ACCESSIBILITY SCORE</span><div id="score" class="score">—</div></div><div id="scoreLabel" class="scoreLabel"></div></div><div id="findings"></div><button id="shareBtn" class="secondary">Compartir reporte</button><button id="copyBtn" class="secondary">Copiar reporte</button></section>
+<section class="card"><h2>Contraste WCAG</h2><div class="colorGrid"><label>Texto<input id="fg" type="color" value="#6b7280"></label><label>Fondo<input id="bg" type="color" value="#ffffff"></label></div><div class="inlineFields"><label>Tamaño px<input id="fontPx" type="number" min="8" max="96" value="16"></label><label class="check"><input id="bold" type="checkbox"> Negrita</label></div><div id="contrastPreview" class="contrastPreview">Texto de ejemplo</div><div id="contrastResult" class="contrastResult"></div></section>
+<section class="card note"><h2>Alcance</h2><p><strong>Incluye:</strong> resolución, heurísticas visuales, contraste exacto y reporte.</p><p><strong>No sustituye:</strong> auditoría DOM/ARIA, VoiceOver, foco o navegación completa.</p></section>
+</main><footer>ARC Mobile · versión iPhone standalone</footer><canvas id="canvas" hidden></canvas>
+<script>
+(function(){'use strict';
+function $(id){return document.getElementById(id)}
+function clamp(n,min,max){return Math.min(max,Math.max(min,n))}
+function hexToRgb(hex){var h=String(hex).replace('#','');if(h.length===3)h=h.split('').map(function(c){return c+c}).join('');if(!/^[0-9a-fA-F]{6}$/.test(h))throw new Error('Color inválido');return{r:parseInt(h.slice(0,2),16),g:parseInt(h.slice(2,4),16),b:parseInt(h.slice(4,6),16)}}
+function relLum(hex){var c=hexToRgb(hex);function f(v){v/=255;return v<=.04045?v/12.92:Math.pow((v+.055)/1.055,2.4)}return .2126*f(c.r)+.7152*f(c.g)+.0722*f(c.b)}
+function contrastResult(fg,bg,fontPx,bold){var a=relLum(fg),b=relLum(bg),ratio=(Math.max(a,b)+.05)/(Math.min(a,b)+.05),large=Number(fontPx)>=24||(bold&&Number(fontPx)>=18.66);return{ratio:Math.round(ratio*100)/100,aa:ratio>=(large?3:4.5),aaa:ratio>=(large?4.5:7),large:large}}
+function scoreFindings(fs){var w={critical:28,major:14,minor:6,info:0},p=0;(fs||[]).forEach(function(f){p+=w[f.severity]||0});return clamp(100-p,0,100)}
+function analyzeStats(s){var o=[];if(s.width<320)o.push({severity:'major',title:'Captura muy angosta',wcag:'1.4.10 Reflow',detail:'Conviene validar reflow y zoom en dispositivo real.'});if(s.width*s.height<100000)o.push({severity:'minor',title:'Resolución limitada',wcag:'QA visual',detail:'La resolución puede ocultar detalles pequeños.'});if(s.luminanceRange<.22)o.push({severity:'major',title:'Posible contraste visual bajo',wcag:'1.4.3 Contrast',detail:'La variación global de luminancia es baja; confirma texto con el calculador.'});if(s.stdDev<.06)o.push({severity:'minor',title:'Interfaz visualmente homogénea',wcag:'1.4.11 Non-text Contrast',detail:'Revisa bordes, estados y controles interactivos.'});if(!o.length)o.push({severity:'info',title:'Sin alertas visuales globales',wcag:'Revisión parcial',detail:'No se detectaron alertas globales. Esto no equivale a conformidad WCAG completa.'});return o}
+function esc(s){return String(s).replace(/[&<>\"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#39;'}[c]})}
+var input=$('imageInput'),btn=$('analyzeBtn'),preview=$('preview'),wrap=$('previewWrap'),canvas=$('canvas'),results=$('resultsCard'),status=$('status'),findingsEl=$('findings'),scoreEl=$('score'),labelEl=$('scoreLabel'),fg=$('fg'),bg=$('bg'),fontPx=$('fontPx'),bold=$('bold'),cp=$('contrastPreview'),cr=$('contrastResult'),shareBtn=$('shareBtn'),copyBtn=$('copyBtn'),sourceUrl=$('sourceUrl');
+var currentFile=null,currentFindings=[],busy=false,currentReport='';
+function setStatus(t){status.textContent=t}
+function modeCheck(){var b=$('modeBanner');if(location.protocol==='file:'){b.className='banner';b.textContent='Estás abriendo el archivo localmente. Si el botón de seleccionar imagen no responde, ábrelo desde Safari mediante una URL HTTPS; la app Archivos/Quick Look puede bloquear JavaScript.'}else{b.className='banner okbanner';b.textContent='Modo navegador activo: JavaScript está funcionando correctamente.'}}
+modeCheck();
+input.addEventListener('change',function(){var f=input.files&&input.files[0];if(!f)return;if(f.size>15*1024*1024){setStatus('Archivo >15 MB');btn.disabled=true;return}currentFile=f;var reader=new FileReader();reader.onload=function(e){preview.src=e.target.result;wrap.classList.remove('hidden');btn.disabled=false;setStatus('Captura cargada')};reader.onerror=function(){setStatus('No pude leer la imagen');btn.disabled=true};reader.readAsDataURL(f)});
+function sampleStats(img){var maxDim=640,scale=Math.min(1,maxDim/Math.max(img.naturalWidth,img.naturalHeight)),w=Math.max(1,Math.round(img.naturalWidth*scale)),h=Math.max(1,Math.round(img.naturalHeight*scale));canvas.width=w;canvas.height=h;var ctx=canvas.getContext('2d');if(!ctx)throw new Error('Canvas no disponible');ctx.drawImage(img,0,0,w,h);var d=ctx.getImageData(0,0,w,h).data,min=1,maxL=0,sum=0,sum2=0,n=0;for(var i=0;i<d.length;i+=64){if(d[i+3]<25)continue;var l=(.2126*d[i]+.7152*d[i+1]+.0722*d[i+2])/255;if(l<min)min=l;if(l>maxL)maxL=l;sum+=l;sum2+=l*l;n++}var mean=n?sum/n:0,std=Math.sqrt(Math.max(0,(n?sum2/n:0)-mean*mean));return{width:img.naturalWidth,height:img.naturalHeight,luminanceRange:maxL-min,stdDev:std}}
+function buildReport(){var lines=['ARC Mobile Audit','Fecha: '+new Date().toLocaleString(),'Origen: '+(sourceUrl.value||currentFile&&currentFile.name||'captura local'),'Score: '+scoreFindings(currentFindings)+'/100',''];currentFindings.forEach(function(f,i){lines.push((i+1)+'. ['+f.severity.toUpperCase()+'] '+f.title,'   '+f.wcag,'   '+f.detail,'')});lines.push('Nota: análisis visual parcial; no sustituye auditoría DOM/ARIA, foco o lector de pantalla.');return lines.join('\n')}
+function render(fs){var sc=scoreFindings(fs);scoreEl.textContent=sc;labelEl.textContent=sc>=90?'Muy bien':sc>=75?'Revisar':sc>=50?'Riesgo medio':'Riesgo alto';findingsEl.innerHTML=fs.map(function(f){return '<article class="finding"><div class="findingHead"><h3>'+esc(f.title)+'</h3><span class="sev">'+esc(f.severity.toUpperCase())+'</span></div><p><strong>'+esc(f.wcag)+'</strong></p><p>'+esc(f.detail)+'</p></article>'}).join('');results.classList.remove('hidden');currentReport=buildReport();try{results.scrollIntoView({behavior:'smooth',block:'start'})}catch(e){results.scrollIntoView()}}
+btn.addEventListener('click',function(){if(busy||!currentFile)return;busy=true;btn.disabled=true;setStatus('Analizando…');try{if(!preview.naturalWidth)throw new Error('Imagen no disponible');currentFindings=analyzeStats(sampleStats(preview));render(currentFindings);setStatus('Análisis completo')}catch(e){console.error(e);setStatus('Error controlado');alert('No pude analizar esta imagen. Prueba con otra captura.')}finally{busy=false;btn.disabled=!currentFile}});
+function updateContrast(){try{var r=contrastResult(fg.value,bg.value,Number(fontPx.value)||16,bold.checked);cp.style.color=fg.value;cp.style.backgroundColor=bg.value;cp.style.fontSize=clamp(Number(fontPx.value)||16,8,96)+'px';cp.style.fontWeight=bold.checked?'700':'400';cr.textContent='Ratio '+r.ratio+':1 · AA '+(r.aa?'✓':'✗')+' · AAA '+(r.aaa?'✓':'✗')+(r.large?' · texto grande':'')}catch(e){cr.textContent='Revisa los valores.'}}
+[fg,bg,fontPx,bold].forEach(function(el){el.addEventListener('input',updateContrast);el.addEventListener('change',updateContrast)});updateContrast();
+shareBtn.addEventListener('click',function(){if(!currentReport)return;if(navigator.share){navigator.share({title:'ARC Mobile Audit',text:currentReport}).catch(function(){})}else{copyReport()}});
+function copyReport(){if(!currentReport)return;if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(currentReport).then(function(){setStatus('Reporte copiado')}).catch(fallbackCopy)}else fallbackCopy()}
+function fallbackCopy(){var ta=document.createElement('textarea');ta.value=currentReport;document.body.appendChild(ta);ta.select();try{document.execCommand('copy');setStatus('Reporte copiado')}catch(e){alert(currentReport)}ta.remove()}
+copyBtn.addEventListener('click',copyReport);
+window.onerror=function(){setStatus('Error controlado');return false};
+})();
+</script>
+
+<footer style="max-width:760px;margin:24px auto 40px;padding:0 16px;text-align:center;font-size:12px;color:#6b7280">
+  ARC Mobile · © 2026 rantunano · Propiedad intelectual reservada · Todos los derechos reservados.
+</footer>
+</body></html>

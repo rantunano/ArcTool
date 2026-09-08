@@ -1,0 +1,7 @@
+ARC Mobile Proprietary License
+
+Copyright © 2026 rantunano. All rights reserved.
+
+This software and its source code, user interface, design, business logic, documentation, and associated materials are proprietary and confidential intellectual property of rantunano.
+
+No permission is granted to copy, modify, distribute, publish, sublicense, sell, reverse engineer, create derivative works from, or otherwise use this software except with prior written authorization from the copyright holder.
