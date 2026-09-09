@@ -1,0 +1,23 @@
+{
+  "name": "arctool-accessibility-auditor",
+  "version": "2.0.0",
+  "private": true,
+  "description": "ARC Mobile deep accessibility auditor for WCAG-oriented page, frame and element analysis.",
+  "type": "commonjs",
+  "main": "server.js",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "start": "node server.js",
+    "scan": "node scan-url.js",
+    "check": "node --check server.js && node --check scan-url.js"
+  },
+  "dependencies": {
+    "axe-core": "^4.10.3",
+    "cors": "^2.8.5",
+    "express": "^5.1.0",
+    "helmet": "^8.1.0",
+    "playwright": "^1.55.0"
+  }
+}
