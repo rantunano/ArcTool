@@ -154,15 +154,41 @@ async function mintLiveUrl(session) {
     const cdp = await session.context.newCDPSession(session.page);
     session.captchaSeen = false;
     cdp.on('Browserless.captchaFound', () => { session.captchaSeen = true; });
-    const result = await cdp.send('Browserless.liveURL', {
+
+    // The live-view lifetime must be shorter than the remaining Browserless
+    // session lifetime. Asking for the full session TTL after navigation can
+    // make Browserless return an error instead of a liveURL.
+    const preferredTimeout = Math.min(120_000, Math.max(30_000, SESSION_TTL_MS - 30_000));
+    let result = await cdp.send('Browserless.liveURL', {
       quality: 70,
-      timeout: Math.min(SESSION_TTL_MS, 300_000),
+      timeout: preferredTimeout,
       interactable: true,
       resizable: true
     });
-    return result.liveURL || null;
+
+    // Browserless reports some liveURL failures in result.error rather than
+    // throwing. Retry once with its default timeout (30s) before giving up.
+    if (!result?.liveURL && result?.error) {
+      session.warnings.push(`Browserless liveURL reintento: ${truncate(result.error, 300)}`);
+      result = await cdp.send('Browserless.liveURL', {
+        quality: 70,
+        interactable: true,
+        resizable: true
+      });
+    }
+
+    if (!result?.liveURL) {
+      const detail = result?.error ? truncate(result.error, 300) : 'Browserless no devolvió liveURL.';
+      session.warnings.push(`No se pudo crear vista interactiva: ${detail}`);
+      console.warn(`ArcTool liveURL unavailable: ${detail}`);
+      return null;
+    }
+
+    return result.liveURL;
   } catch (e) {
-    session.warnings.push(`No se pudo crear vista interactiva: ${truncate(e.message, 300)}`);
+    const detail = truncate(e.message, 300);
+    session.warnings.push(`No se pudo crear vista interactiva: ${detail}`);
+    console.warn(`ArcTool liveURL error: ${detail}`);
     return null;
   }
 }
@@ -443,6 +469,7 @@ app.post('/api/session/start', requireKey, async (req, res) => {
       sessionId: session.id, requestedUrl: url, finalUrl: session.page.url(), title: gate.title,
       interactionRequired: gate.interactionSuggested, reason: gate.antiBot ? 'security_challenge' : gate.login ? 'login' : null,
       liveUrl: session.liveUrl, interactiveAvailable: !!session.liveUrl,
+      interactiveWarning: session.liveUrl ? null : (session.warnings.find(w => /vista interactiva|liveURL/i.test(w)) || null),
       message: gate.interactionSuggested ? 'Se recomienda completar la interacción humana antes de continuar.' : 'Página lista para auditoría.'
     });
   } catch (e) {
