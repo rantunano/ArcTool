@@ -1,6 +1,10 @@
 name: Audit URL with ArcTool
 
 on:
+  push:
+    branches:
+      - v2-deep-audit
+
   workflow_dispatch:
     inputs:
       url:
