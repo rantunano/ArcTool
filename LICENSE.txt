@@ -1,8 +1,8 @@
 ArcTool Proprietary License
 Copyright © 2026 rantunano. All rights reserved.
 
-This software, source code, interface, design, logic, documentation, reports, and associated materials are proprietary intellectual property of rantunano.
+This software, its source code, interface, design, logic, documentation and associated materials are proprietary intellectual property of rantunano.
 
-No permission is granted to copy, modify, distribute, sublicense, publish, sell, reverse engineer, or create derivative works without prior written authorization from the owner.
+No permission is granted to copy, modify, distribute, sublicense, publish, sell, reverse engineer, create derivative works from, or otherwise exploit this software without prior written authorization from the owner.
 
-Use of this software does not grant any ownership or license rights except as expressly authorized in writing by rantunano.
+THE SOFTWARE IS PROVIDED "AS IS" WITHOUT WARRANTIES OF ANY KIND.

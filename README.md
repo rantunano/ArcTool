@@ -1,42 +1,54 @@
-# ArcTool Accessibility Auditor
+# ArcTool V3
 
-**© 2026 rantunano. All rights reserved. Proprietary software.**
+**© 2026 rantunano. Proprietary software. All rights reserved.**
 
-ArcTool is a mobile-first accessibility auditor designed to inspect a web page piece by piece and prioritize the most important accessibility failures.
+ArcTool V3 is a mobile-first accessibility auditing web application. The end user works entirely from the HTML interface: URL, scope, device, human interaction, results, filters and exports.
 
-## What v2 scans
+## What V3 adds
 
-- Main DOM and all browser-accessible iframes (up to configurable limits)
-- axe-core WCAG-oriented automated rules per frame
-- Text, headings, links, buttons, inputs, labels, images, forms, landmarks and ARIA roles
-- Accessible names and affected HTML/selectors for each violation
-- Custom checks for iframe titles, unnamed controls/links, target size, heading jumps, non-semantic clickable elements and autoplay media
-- Per-element inventory with frame attribution
-- Critical → Serious → Moderate → Minor prioritization
-- JSON and HTML reports
+- Graphical HTML interface; no GitHub Actions or terminal required for end users.
+- Any public HTTP/HTTPS URL as the audit target.
+- Page mode or same-origin site crawl mode.
+- Desktop, iPhone and tablet profiles.
+- DOM, text, links, buttons, form controls, images, headings, ARIA and iframe analysis.
+- axe-core plus ArcTool custom checks.
+- Element-level findings with page, frame, selector, accessible name, text and WCAG tags.
+- Priority ordering: Critical → Serious → Moderate → Minor.
+- Search and filters by severity/page/text/WCAG/selector.
+- PDF, CSV and JSON export.
+- Human-in-the-loop remote browser handoff for CAPTCHA/login/MFA when Browserless is configured.
+- Challenge detection that avoids presenting an anti-bot page score as the target website score.
 
-The scanner uses **Playwright + Chromium + axe-core**. Running the scanner in a real browser process is necessary because GitHub Pages alone cannot inspect arbitrary third-party DOMs or cross-origin frames.
+## Human interaction model
+
+ArcTool does **not** automate or defeat CAPTCHA/security challenges. If a site requests human verification, ArcTool can expose the same running remote browser session through Browserless `liveURL`. The user completes the interaction directly in the target page, then returns to ArcTool and selects **Ya terminé · Continuar auditoría**. The same browser state/cookies are preserved for the scan.
+
+Credentials are not entered into ArcTool's own form. They are typed directly into the target page in the interactive browser session.
 
 ## Architecture
 
 ```text
-iPhone / Web UI
-      |
-      v
-POST /api/scan
-      |
-Node/Express scanner
-      |
-Playwright Chromium
-  |         |
-main DOM   iframes
-  |         |
-axe-core + ArcTool custom rules
-      |
-prioritized report (JSON / HTML)
+iPhone / Desktop browser
+        |
+        v
+   ArcTool HTML UI
+        |
+        v
+    ArcTool API
+        |
+        +--> Local Playwright (normal automated scans + PDF generation)
+        |
+        +--> Browserless persistent session (optional human interaction)
+                    |
+                    +--> liveURL -> user completes CAPTCHA/login/MFA
+                    |
+                    +--> same Chromium session -> axe-core + ArcTool rules
+        |
+        v
+  Findings table + PDF/CSV/JSON
 ```
 
-## Run locally
+## Local development
 
 ```bash
 npm install
@@ -46,55 +58,63 @@ npm start
 
 Open `http://localhost:3000`.
 
-## Run a URL audit from the command line
+Without `BROWSERLESS_TOKEN`, normal public pages can be scanned, but human-in-the-loop interaction is unavailable.
+
+## Interactive mode
+
+Set a Browserless API token in the backend environment:
 
 ```bash
-npm run scan -- https://example.com
+BROWSERLESS_TOKEN=your_token
 ```
 
-The report is saved as `arc-report.json`.
-
-## Run from GitHub Actions
-
-Open **Actions → Audit URL with ArcTool → Run workflow**, enter a public URL, then download the `arc-accessibility-report` artifact when the job finishes.
-
-## Deploy the full scanner
-
-GitHub Pages can host `index.html`, but the Playwright scanner needs a Node/container runtime. Deploy this repository to a container-capable host using the included `Dockerfile`, then in ArcTool's **Configuración del scanner** set the backend URL.
-
-Environment variables:
-
-- `PORT` (default `3000`)
-- `ARC_API_KEY` optional API key
-- `CORS_ORIGIN` comma-separated allowed web origins
-- `MAX_CONCURRENT_SCANS` default `2`
-- `SCAN_TIMEOUT_MS` default `45000`
-- `MAX_FRAMES` default `30`
-- `MAX_FINDINGS` default `5000`
-- `MAX_INVENTORY` default `5000`
-
-## Security / stability safeguards
-
-- Blocks localhost, private IP ranges and embedded URL credentials to reduce SSRF risk
-- Blocks redirects/assets that resolve to private networks
-- Navigation and overall scan timeouts
-- Limits frames, findings, inventory size and concurrent scans
-- Browser is closed in `finally` paths to reduce leaks/crashes
-- API request body is size-limited
-
-## Testing
+Optional:
 
 ```bash
-npm run check
-npm test
+BROWSERLESS_HOST=https://production-sfo.browserless.io
+SESSION_TTL_MS=300000
 ```
 
-GitHub CI runs syntax checks and unit tests on pushes and pull requests.
+The Browserless token is server-side only and is never placed in the HTML application.
 
-## Important limitation
+## Deployment
 
-Automated accessibility testing cannot certify complete WCAG conformance. Keyboard behavior, VoiceOver/TalkBack experience, cognitive usability and some visual/contextual criteria still require manual testing.
+The full V3 should run on a container-capable host because the API needs Node.js and Chromium. `Dockerfile` is included.
 
-## License
+GitHub Pages can still host a frontend-only copy of `index.html`, but then **Configuración avanzada → Backend ArcTool** must point to the deployed API. The cleaner production deployment is to host both the HTML and API together from the same Node/container service.
 
-Proprietary. See `LICENSE.txt`.
+## API
+
+- `GET /api/health`
+- `POST /api/session/start`
+- `POST /api/session/:id/scan`
+- `GET /api/session/:id/status`
+- `DELETE /api/session/:id`
+- `POST /api/report/pdf`
+
+### Start session body
+
+```json
+{
+  "url": "https://example.com",
+  "scope": "page",
+  "device": "iphone",
+  "maxPages": 5
+}
+```
+
+## Security/stability safeguards
+
+- Blocks localhost, private/reserved IP ranges and embedded URL credentials.
+- Guards browser subrequests against private networks.
+- Session TTL and maximum active-session limit.
+- Limits pages, frames, inventory and findings.
+- Explicit session cleanup endpoint.
+- Browserless connection and stop URLs remain server-side.
+- Optional `ARC_API_KEY` and `CORS_ORIGIN`.
+
+## Important limitations
+
+Automated testing cannot certify full WCAG conformance. Keyboard behavior, VoiceOver/TalkBack experience, cognitive usability and contextual criteria still require manual review.
+
+A remote anti-bot/security challenge must be completed by an authorized human or allowlisted by the website owner. ArcTool should not be used to bypass access controls.
