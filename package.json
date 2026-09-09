@@ -5,7 +5,9 @@
   "description": "ArcTool V3 mobile-first accessibility auditor with human-in-the-loop browser sessions and PDF/CSV/JSON reporting.",
   "type": "commonjs",
   "main": "server.js",
-  "engines": { "node": ">=22" },
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
     "start": "node server.js",
     "check": "node --check server.js"
@@ -15,6 +17,6 @@
     "cors": "^2.8.5",
     "express": "^5.1.0",
     "helmet": "^8.1.0",
-    "playwright": "^1.55.0"
+    "playwright": "1.63.0"
   }
 }
