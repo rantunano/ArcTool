@@ -15,7 +15,7 @@ const PORT = Number(process.env.PORT || 3000);
 const API_KEY = process.env.ARC_API_KEY || '';
 const BROWSERLESS_TOKEN = process.env.BROWSERLESS_TOKEN || '';
 const BROWSERLESS_HOST = (process.env.BROWSERLESS_HOST || 'https://production-sfo.browserless.io').replace(/\/$/, '');
-const SESSION_TTL_MS = clampNumber(process.env.SESSION_TTL_MS, 60_000, 1_800_000, 300_000);
+const SESSION_TTL_MS = clampNumber(process.env.SESSION_TTL_MS, 60_000, 120_000, 120_000);
 const MAX_SESSIONS = clampNumber(process.env.MAX_SESSIONS, 1, 20, 3);
 const MAX_FINDINGS = clampNumber(process.env.MAX_FINDINGS, 100, 20_000, 5000);
 const MAX_INVENTORY = clampNumber(process.env.MAX_INVENTORY, 100, 20_000, 5000);
@@ -116,22 +116,23 @@ function deviceConfig(name) {
 }
 
 async function createRemoteBrowser(deviceName) {
-  // Use Browserless' native Playwright transport for the long-lived session.
-  // Keeping the whole browser attached over CDP while a LiveURL viewer also
-  // attaches can generate duplicate Target.attachedToTarget events in
-  // Playwright and crash the Node process with "Duplicate target".
+  // Browserless liveURL is a Browserless CDP extension. The native Playwright
+  // transport (/chromium/playwright) does not expose Browserless.liveURL, so
+  // ArcTool must use Browserless' direct Chromium CDP endpoint for hybrid
+  // human-in-the-loop sessions.
   const wsBase = BROWSERLESS_HOST.replace(/^https:/i, 'wss:').replace(/^http:/i, 'ws:');
+  const timeout = Math.min(120_000, Math.max(60_000, SESSION_TTL_MS));
   const params = new URLSearchParams({
     token: BROWSERLESS_TOKEN,
-    timeout: String(SESSION_TTL_MS)
+    timeout: String(timeout)
   });
-  const endpoint = `${wsBase}/chromium/playwright?${params.toString()}`;
-  const browser = await chromium.connect(endpoint, { timeout: 60_000 });
+  const endpoint = `${wsBase}?${params.toString()}`;
+  const browser = await chromium.connectOverCDP(endpoint, { timeout: 60_000 });
   const d = deviceConfig(deviceName);
   const existing = browser.contexts()[0];
   const context = existing || await browser.newContext({ viewport: d.viewport, userAgent: d.userAgent, isMobile: d.isMobile, hasTouch: d.hasTouch });
   const page = context.pages()[0] || await context.newPage();
-  return { browser, context, page, remote: { mode: 'playwright-native' } };
+  return { browser, context, page, remote: { mode: 'cdp-direct' } };
 }
 
 async function createLocalBrowser(deviceName) {
@@ -161,7 +162,7 @@ async function mintLiveUrl(session) {
     // The live-view lifetime must be shorter than the remaining Browserless
     // session lifetime. Asking for the full session TTL after navigation can
     // make Browserless return an error instead of a liveURL.
-    const preferredTimeout = Math.min(120_000, Math.max(30_000, SESSION_TTL_MS - 30_000));
+    const preferredTimeout = Math.min(60_000, Math.max(30_000, SESSION_TTL_MS - 45_000));
     let result = await cdp.send('Browserless.liveURL', {
       quality: 70,
       timeout: preferredTimeout,
