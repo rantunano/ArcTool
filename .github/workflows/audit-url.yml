@@ -1,0 +1,61 @@
+name: Audit URL with ArcTool
+
+on:
+  workflow_dispatch:
+    inputs:
+      url:
+        description: Public URL to audit
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Start ArcTool scanner
+        run: |
+          npm start > /tmp/arctool.log 2>&1 &
+          for i in {1..30}; do
+            if curl --fail --silent http://127.0.0.1:3000/api/health > /dev/null; then
+              exit 0
+            fi
+            sleep 1
+          done
+          cat /tmp/arctool.log
+          exit 1
+
+      - name: Audit URL
+        env:
+          TARGET_URL: ${{ inputs.url }}
+        run: npm run scan -- "$TARGET_URL"
+
+      - name: Upload report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: arc-accessibility-report
+          path: arc-report.json
+          if-no-files-found: warn
+
+      - name: Show scanner log on failure
+        if: failure()
+        run: cat /tmp/arctool.log || true
