@@ -116,19 +116,22 @@ function deviceConfig(name) {
 }
 
 async function createRemoteBrowser(deviceName) {
-  const response = await fetch(`${BROWSERLESS_HOST}/session?token=${encodeURIComponent(BROWSERLESS_TOKEN)}`, {
-    method: 'POST',
-    headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({ ttl: SESSION_TTL_MS, stealth: false, headless: false })
+  // Use Browserless' native Playwright transport for the long-lived session.
+  // Keeping the whole browser attached over CDP while a LiveURL viewer also
+  // attaches can generate duplicate Target.attachedToTarget events in
+  // Playwright and crash the Node process with "Duplicate target".
+  const wsBase = BROWSERLESS_HOST.replace(/^https:/i, 'wss:').replace(/^http:/i, 'ws:');
+  const params = new URLSearchParams({
+    token: BROWSERLESS_TOKEN,
+    timeout: String(SESSION_TTL_MS)
   });
-  if (!response.ok) throw new Error(`Browserless Session API respondió HTTP ${response.status}.`);
-  const remote = await response.json();
-  const browser = await chromium.connectOverCDP(remote.connect);
-  const existing = browser.contexts()[0];
+  const endpoint = `${wsBase}/chromium/playwright?${params.toString()}`;
+  const browser = await chromium.connect(endpoint, { timeout: 60_000 });
   const d = deviceConfig(deviceName);
+  const existing = browser.contexts()[0];
   const context = existing || await browser.newContext({ viewport: d.viewport, userAgent: d.userAgent, isMobile: d.isMobile, hasTouch: d.hasTouch });
   const page = context.pages()[0] || await context.newPage();
-  return { browser, context, page, remote };
+  return { browser, context, page, remote: { mode: 'playwright-native' } };
 }
 
 async function createLocalBrowser(deviceName) {
@@ -375,7 +378,7 @@ async function scanSession(session) {
         await session.page.goto(target, { waitUntil: 'domcontentloaded', timeout: 25_000 });
         await session.page.waitForTimeout(800);
       }
-      const gate = await detectInteractionGate(session.page, session.captchaSeen);
+      const gate = await detectInteractionGate(session.page, false);
       if (gate.antiBot) {
         session.warnings.push(`La página ${session.page.url()} muestra una verificación anti-bot; no se calculó un score para esa página hasta completar la interacción humana.`);
         if (pages.length === 0) {
@@ -464,7 +467,7 @@ app.post('/api/session/start', requireKey, async (req, res) => {
     await session.page.goto(url, { waitUntil: 'domcontentloaded', timeout: 25_000 });
     await session.page.waitForTimeout(1000);
     session.liveUrl = await mintLiveUrl(session);
-    const gate = await detectInteractionGate(session.page, session.captchaSeen);
+    const gate = await detectInteractionGate(session.page, false);
     res.json({
       sessionId: session.id, requestedUrl: url, finalUrl: session.page.url(), title: gate.title,
       interactionRequired: gate.interactionSuggested, reason: gate.antiBot ? 'security_challenge' : gate.login ? 'login' : null,
@@ -483,7 +486,7 @@ app.post('/api/session/:id/scan', requireKey, async (req, res) => {
   if (!session || session.closed) return res.status(404).json({ error: 'Sesión expirada o inexistente.' });
   session.expiresAt = Date.now() + SESSION_TTL_MS;
   try {
-    const gate = await detectInteractionGate(session.page, session.captchaSeen);
+    const gate = await detectInteractionGate(session.page, false);
     if (gate.antiBot) return res.status(409).json({ error: 'La verificación anti-bot sigue activa.', interactionRequired: true, liveUrl: session.liveUrl });
     const report = await scanSession(session);
     if (report.blocked) return res.status(409).json(report);
@@ -495,7 +498,7 @@ app.post('/api/session/:id/scan', requireKey, async (req, res) => {
 app.get('/api/session/:id/status', requireKey, async (req, res) => {
   const session = sessions.get(req.params.id);
   if (!session || session.closed) return res.status(404).json({ error: 'Sesión expirada o inexistente.' });
-  const gate = await detectInteractionGate(session.page, session.captchaSeen);
+  const gate = await detectInteractionGate(session.page, false);
   res.json({ sessionId: session.id, finalUrl: session.page.url(), title: gate.title, interactionRequired: gate.interactionSuggested, reason: gate.antiBot ? 'security_challenge' : gate.login ? 'login' : null, liveUrl: session.liveUrl });
 });
 
